@@ -1,35 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { HomePage } from "./components/HomePage";
+import { SignupPage } from "./components/SignupPage";
+import { LearningEnvironment } from "./components/LearningEnvironment";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [currentPage, setCurrentPage] = useState("home");
+  const [userName, setUserName] = useState("");
+
+  const handleGetStarted = () => {
+    setCurrentPage("learning");
+  };
+
+  const handleSignUp = () => {
+    setCurrentPage("signup");
+  };
+
+  const handleSignupSuccess = (name) => {
+    setUserName(name);
+    setCurrentPage("learning");
+  };
+
+  const handleBackToHome = () => {
+    setCurrentPage("home");
+  };
+
+  const handleExit = () => {
+    setCurrentPage("home");
+    setUserName("");
+  };
+
+  if (currentPage === "signup") {
+    return (
+      <SignupPage
+        onBack={handleBackToHome}
+        onSignupSuccess={handleSignupSuccess}
+      />
+    );
+  }
+
+  if (currentPage === "learning") {
+    return (
+      <LearningEnvironment
+        userName={userName}
+        onExit={handleExit}
+      />
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <HomePage
+      onGetStarted={handleGetStarted}
+      onSignUp={handleSignUp}
+    />
+  );
 }
-
-export default App
