@@ -55,35 +55,33 @@ export async function generateFeedback(code, task) {
 }
 
 
-export async function generateProjectSuggestions() {
+export async function generateProjectSuggestions({ userName, experienceLevel, interests }) {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `You are an AI mentor that designs project-based learning paths.
+        model: "gemini-2.5-flash",
+        contents: `You are an AI mentor that designs project-based learning paths.
 
-                    The user profile is:
-                    Name: {{userName}}
-                    Experience level: {{experienceLevel}}
-                    Interests: {{interests}}
+        The user profile is:
+        Name: ${userName}
+        Experience level: ${experienceLevel}
+        Interests: ${interests}
 
-                    Suggest 3 creative project ideas that would help this user improve their skills.
-                    For each project, include:
-                    Title
-                    Description
-                    What skills it teaches
-                    Estimated difficulty (1–5)
-                    Estimated duration in days
+        Suggest 3 creative project ideas that would help this user improve their skills.
+        For each project, include:
+        - Title
+        - Description
+        - What skills it teaches
+        - Estimated difficulty (1–5)
+        - Estimated duration in days
 
-
-  
-                Return your recommendations in JSON array format ONLY`,
+        Return your recommendations in JSON array format ONLY.`,
     });
-  
-    // Optionally parse JSON if you want structured output
+
+    // Parse JSON if possible
     try {
-      return JSON.parse(response.text).feedback;
-    } catch {
-      // fallback: return raw text
-      return response.text;
+        return JSON.parse(response.text);
+    } catch (err) {
+        console.warn("Failed to parse AI response as JSON:", err);
+        return response.text; // fallback to raw text
     }
-  }
+}
 
