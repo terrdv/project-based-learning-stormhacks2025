@@ -141,3 +141,5 @@ vite.config.ts.timestamp-*
 .vite/
 
 ./server/node_modules
+./client/node_modules
+
