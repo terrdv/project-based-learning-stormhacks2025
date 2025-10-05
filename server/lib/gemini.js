@@ -370,34 +370,3 @@ export async function generateQuestion(question, projectId) {
     }).eq('id', projectId);
   return feedback;
 }
-
-export async function generateQuestion(question,code, task) {
-  const response = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: `You are a helpful code teacher. Answer the user's question: If it is related to the task help but do not reveal too much information.
-
-  Question: ${question}
-  Code: ${code}
-  Task: ${task}
-
-  Return your feedback like this:
-  {
-    "answer": "Your answer here..."
-  }`,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: "object",
-          properties: {
-            answer: { type: "string" }
-          },
-          required: ["hint"] // ensures feedback always exists
-        },
-      },
-    });
-
-    let hint = response.candidates[0].content.parts[0].text;
-
-  // Directly return the structured feedback
-  return JSON.parse(hint);
-}
