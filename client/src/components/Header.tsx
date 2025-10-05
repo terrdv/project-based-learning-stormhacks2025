@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react";
-import polaris from '../assets/polaris.png';
+import polarisSvg from '/polaris.svg';
+import polarisLight from '/polarislight.svg';
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +18,10 @@ export function Header() {
 
   useEffect(() => {
     let mounted = true;
+    // initialize theme from document so the correct logo is shown on first render
+    if (typeof document !== 'undefined') {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    }
     (async () => {
       try {
         const { data } = await supabase.auth.getUser();
@@ -34,7 +39,7 @@ export function Header() {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between p-4">
       <Button variant={"ghost"} className="flex items-center gap-3" onClick={() => navigate('/')}>
-  <img src={polaris} alt="Polaris" className="h-6 w-6 object-contain" />
+  <img src={isDark ? polarisSvg : polarisLight} alt="Polaris" className="h-10 w-10 object-contain" />
         <h1 className="text-lg">Polaris</h1>
       </Button>
       

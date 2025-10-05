@@ -8,7 +8,6 @@ import { Separator } from "./ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Header } from "./Header";
 import { 
-  BookOpen, 
   Code, 
   CheckCircle,
   

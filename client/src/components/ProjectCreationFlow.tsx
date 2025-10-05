@@ -18,8 +18,7 @@ import {
   Target,
   BookOpen,
   Clock,
-  Rocket,
-  Zap
+  Rocket
 } from "lucide-react";
 import { supabase } from "@/supabase";
 
@@ -87,7 +86,6 @@ export function ProjectCreationFlow(): React.ReactElement {
   });
     const [isGenerating, setIsGenerating] = useState(false);
 
-  const [userName, setUserName] = useState<string>('');
   type Project = {
     id: number;
     icon: string;
@@ -108,9 +106,7 @@ useEffect(() => {
     try {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
-        if (!mounted || !user) return
-        const meta: any = user.user_metadata ?? {}
-        setUserName(meta.full_name || user.email || '')
+        if (!mounted || !user) return;
     } catch (e) {
         // ignore
     }

@@ -3,13 +3,12 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useState, useRef, useEffect } from "react";
-import { postFeedback } from "../services/geminiAPI";
 
-export function AIAssistant({ project, userId }: { project: any; userId: string }) {
+export function AIAssistant({ project }: { project: any; userId: string }) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const messages = project.messages || [];
-  const codefiles = project.files
+
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -27,7 +26,7 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
   };
 
     const handleSendMessage = async (userMessage: string) => {
-      const response = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/gemini/question", {
+      await fetch(import.meta.env.VITE_BACKEND_URL + "/api/gemini/question", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

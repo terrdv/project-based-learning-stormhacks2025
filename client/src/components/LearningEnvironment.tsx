@@ -20,7 +20,7 @@ import { supabase } from "../supabase";
 export function LearningEnvironment() {
   // const navigate = useNavigate();
 
-  const [userName, setUserName] = useState("Your Name");
+
   const [userId, setUserId] = useState("");
 
   const [project, setProject] = useState<any>(null);
@@ -35,8 +35,6 @@ export function LearningEnvironment() {
         const user = data?.user;
         if (!user) return;
         const id = user.id;
-        const meta: any = user.user_metadata ?? {};
-        setUserName(meta.full_name || user.email || "");
         const { data: projectData } = await supabase
         .from("projects")
         .select("*")
