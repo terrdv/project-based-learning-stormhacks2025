@@ -1,5 +1,3 @@
-const BASE_URL = "http://localhost:3000";
-
 // Request / response interfaces
 export interface FeedbackRequest {
   code: string;
@@ -39,7 +37,7 @@ export const postFeedback = async (
 
   console.log(JSON.stringify(data))
 
-  const response = await fetch(`${BASE_URL}/api/gemini/feedback`, {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/feedback`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

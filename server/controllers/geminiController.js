@@ -31,8 +31,8 @@ export const getProjectSuggestions = async (req, res) => {
   };
 
 export const getFeedback = async (req, res) => {
-    const {code, task, authToken} = req.body
-    const result = await generateFeedback(code, task)
+    const {projectId} = req.body
+    const result = await generateFeedback(projectId)
     res.json(result)
 } 
 

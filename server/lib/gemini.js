@@ -72,7 +72,14 @@ export async function generateAppGuide({ userInfo, projectDetails }, userId) {
         ...feedback,
         progress: 1,
         boilerplate: feedback.files,
-        user_id: userId
+        user_id: userId,
+        messages: [{
+            role: 'assistant', content: `Welcome to your new project: ${feedback.title}, ${feedback.description}!`
+        },
+        {
+            role: 'assistant', content: `Welcome to your new project: ${feedback.title}, ${feedback.instructions}!`
+        },
+            { role: 'assistant', content: `Step 1: ${feedback.steps[0].title}. ${feedback.steps[0].description}. ${feedback.steps[0].instructions}` }]
     });
   // otherwise check text
   if (feedback) {
@@ -86,7 +93,14 @@ export async function generateAppGuide({ userInfo, projectDetails }, userId) {
 }
 
 
-export async function generateFeedback(code, task) {
+export async function generateFeedback(projectId) {
+    let { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
+    let msg = data.messages ?? [];
+    let { files: code, steps } = data;
+    let task = steps[data.progress - 1];
+
+    msg.push({ role: 'user', content: `I submitted code for task #${data.progress}`});
+
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `
@@ -104,8 +118,8 @@ export async function generateFeedback(code, task) {
     Finally, determine whether the code **passes** the task.
     Set "pass" to true **only if** the code is correct and fully achieves the intended functionality described in the task.
 
-    Task: ${task}
-    Code: ${code}
+    Task: ${JSON.stringify(task)}
+    Code: ${JSON.stringify(code)}
     `,
     config: {
       responseMimeType: "application/json",
@@ -120,8 +134,18 @@ export async function generateFeedback(code, task) {
     },
   });
 
-  const feedback = response.candidates[0].content.parts[0].text;
-  return JSON.parse(feedback);
+  let feedback = response.candidates[0].content.parts[0].text;
+  feedback = JSON.parse(feedback)
+
+  console.log(feedback);
+
+  msg.push({ role: 'assistant', content: feedback.feedback });
+
+  await supabase.from('projects').update({
+        progress: data.progress + (feedback.pass ? 1 : 0),
+        messages: msg
+    }).eq('id', projectId);
+  return feedback;
 }
 
 

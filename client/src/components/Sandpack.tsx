@@ -40,6 +40,21 @@ export function CodeEditor({ project, files }: { project: any; files: any }) {
   });
 
   console.log(files);
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  useEffect(() => {
+    // set initial
+    if (typeof document !== 'undefined') {
+      setIsDark(document.documentElement.classList.contains('dark'));
+      // observe class changes on documentElement to react to header toggle
+      const obs = new MutationObserver(() => {
+        setIsDark(document.documentElement.classList.contains('dark'));
+      });
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      return () => obs.disconnect();
+    }
+    return;
+  }, []);
   return (
     <div className="flex flex-col h-full">
       <SandpackProvider
@@ -49,6 +64,7 @@ export function CodeEditor({ project, files }: { project: any; files: any }) {
             entry: '/templates/index.html',
         }}
         style ={{ resize: "vertical" }}
+        theme={isDark ? 'dark' : 'light'}
       >
         <SandpackLayout style={{ height: "100%", minHeight: "350px" }} className={styles.spLayout}>
           <SandpackCodeEditor showTabs showLineNumbers style={{ height: "100%" }} />

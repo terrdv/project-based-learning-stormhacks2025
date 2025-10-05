@@ -94,15 +94,13 @@ export function LearningEnvironment() {
 
 
   const submitCodeToGemini = async () => {
-      const response = await fetch("/api/gemini/submit", {
+      const response = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/gemini/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: project.files,
-          step,
-          authToken: (await supabase.auth.getSession()).data.session?.access_token
+          projectId: project.id
         }),
       });
       const data = await response.json();
@@ -225,9 +223,9 @@ export function LearningEnvironment() {
         {/* !!! Try to fix AI assistant height !!! */}
         <div className="w-80 border-r border-border bg-card flex flex-col min-h-0 h-full"> 
           <div className="flex-1 h-full">
-            {/* <AIAssistant
+            <AIAssistant
             project={project} userId = {userId}
-            /> */}
+            />
           </div>
 
           {/* Current Step Info */}

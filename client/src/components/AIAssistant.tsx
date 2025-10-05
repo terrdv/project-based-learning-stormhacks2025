@@ -9,6 +9,7 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const messages = project.messages || [];
+  const codefiles = project.files
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -16,14 +17,9 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
     }
   }, [messages]);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      onSendMessage(input);
-      setInput("");
-    }
-  };
+  
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e : React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -36,14 +32,46 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
         role: "user",
         content: userMessage,
       };
-  
+      const buildFilesString = (files: { filename: string; content: string }[]) => {
+        return files
+          .map(
+            (f) => `--- FILE: ${f.filename} ---\n${f.content.trim()}\n`
+          )
+          .join("\n\n")
+      }
+
+
+      const filesString = buildFilesString(codefiles)
+      const payload = `
+        User Message:
+        ${userMessage}
+
+        Project Step:
+        ${project.steps[project.progress - 1]}
+
+        Project Files:
+        ${filesString}
+      `
+      const aiM = async() => {
+        await postFeedback(payload, project.steps[project.progress - 1])
+      }
+      const aitext = aiM()
       const aiMsg = {
         id: messages.length + 2,
         role: "assistant",
-        content: "",
+        content: aitext,
       };
   
-      setMessages([...messages, userMsg, aiMsg]);
+      // setMessages([...messages, userMsg, aiMsg]);
+      messages.push(userMsg, aiMsg)
+
+    };
+
+    const handleSend = () => {
+        if (input.trim()) {
+        handleSendMessage(input);
+        setInput("");
+        }
     };
 
   return (

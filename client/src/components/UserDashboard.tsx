@@ -32,6 +32,7 @@ export function UserDashboard() {
   // track whether we've finished checking auth so we don't flash the dashboard
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   const [project, setProject] = useState<any>(null);
+  const [savedProjects, setSavedProjects] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -49,14 +50,18 @@ export function UserDashboard() {
         const meta: any = user.user_metadata ?? {};
         setUserName(meta.full_name || 'user');
         setIsCheckingAuth(false);
-        const { data: projectData } = await supabase
+        const { data: projects } = await supabase
         .from("projects")
         .select("*")
         .eq("user_id", id)
-        .order("last_saved", { ascending: false })
-        .limit(1)
-        .single();
-  setProject(projectData);
+        .order("last_saved", { ascending: false });
+        if (projects && projects.length > 0) {
+          setProject(projects[0]);
+          setSavedProjects(projects.slice(1));
+        } else {
+          setProject(null);
+          setSavedProjects([]);
+        }
       } catch (e) {
         // ignore
         setIsCheckingAuth(false);
@@ -79,36 +84,7 @@ export function UserDashboard() {
 
   // (no local mock project — we'll display DB project or a "No project available" message)
 
-  // Mock saved projects
-  const savedProjects = [
-    {
-      id: "js-fundamentals",
-      title: "JavaScript Fundamentals",
-      description: "Master the basics of JavaScript programming",
-      progress: 45,
-      totalSteps: 6,
-      lastAccessed: "1 week ago",
-      difficulty: "Beginner"
-    },
-    {
-      id: "react-intro",
-      title: "Introduction to React",
-      description: "Build dynamic user interfaces with React",
-      progress: 20,
-      totalSteps: 8,
-      lastAccessed: "2 weeks ago",
-      difficulty: "Intermediate"
-    },
-    {
-      id: "css-animations",
-      title: "CSS Animations & Transitions",
-      description: "Create engaging animations with pure CSS",
-      progress: 80,
-      totalSteps: 5,
-      lastAccessed: "3 days ago",
-      difficulty: "Intermediate"
-    }
-  ];
+  // savedProjects state will be populated from the database
 
   // Mock project recommendations
   const recommendations = [
@@ -199,19 +175,19 @@ export function UserDashboard() {
             <Card className="border-primary/20">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0 pr-4">
-                    <CardTitle className="text-base truncate mb-3">
+                  <div>
+                    <CardTitle className="flex left mb-3">
                       {/* <BookOpen className="h-5 w-5" /> */}
                       {project.title}
                     </CardTitle>
-                    <CardDescription className="text-sm truncate">{project.description}</CardDescription>
+                    <div className="flex left">
+                    <CardDescription className="flex left">{project.description}</CardDescription>
+                    </div>
                   </div>
-                  <div className="flex-shrink-0">
-                    <Button onClick={onContinueLearning} className="shrink-0">
+                  <Button onClick={onContinueLearning} className="shrink-0">
                     <Play className="h-4 w-4 mr-2" />
                     Continue Learning
                   </Button>
-                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -298,41 +274,46 @@ export function UserDashboard() {
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedProjects.map((project) => (
-                  <Card key={project.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-base">{project.title}</CardTitle>
-                        <Bookmark className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </div>
-                      <CardDescription className="text-sm">{project.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>{project.progress}% complete</span>
-                          <span className="text-muted-foreground">{project.totalSteps} steps</span>
+                {savedProjects.map((p) => {
+                  const completed = Math.max(0, (p.progress || 0) - 1);
+                  const total = p.steps?.length || p.totalSteps || 0;
+                  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                  return (
+                    <Card key={p.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-base">{p.title}</CardTitle>
+                          <Bookmark className="h-4 w-4 text-muted-foreground shrink-0" />
                         </div>
-                        <Progress value={project.progress} className="h-1.5" />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Badge className={getDifficultyColor(project.difficulty)}>
-                          {project.difficulty}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">{project.lastAccessed}</span>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => onStartProject(project.id)}
-                      >
-                        <Play className="h-3 w-3 mr-2" />
-                        Continue
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <CardDescription className="text-sm">{p.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{pct}% complete</span>
+                            <span className="text-muted-foreground">{total} steps</span>
+                          </div>
+                          <Progress value={pct} className="h-1.5" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Badge className={getDifficultyColor(p.difficulty)}>
+                            {p.difficulty}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{p.lastAccessed}</span>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => onStartProject(p.id)}
+                        >
+                          <Play className="h-3 w-3 mr-2" />
+                          Continue
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             </CollapsibleContent>
           </Collapsible>
