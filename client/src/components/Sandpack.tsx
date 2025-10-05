@@ -57,7 +57,7 @@ export function CodeEditor({ project, files }: { project: any; files: any }) {
         template="static"
         files={realFiles}
         customSetup = {{
-            entry: '/templates/index.html',
+            entry: 'index.html',
         }}
         style ={{ height: "100%" }}
         theme={isDark ? 'dark' : 'light'}
