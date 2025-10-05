@@ -59,7 +59,7 @@ export function CodeEditor({ project, files }: { project: any; files: any }) {
         customSetup = {{
             entry: '/templates/index.html',
         }}
-        style ={{ resize: "vertical" }}
+        style ={{ height: "100%" }}
         theme={isDark ? 'dark' : 'light'}
       >
         <SandpackLayout style={{ height: "100%", minHeight: "350px" }} className={styles.spLayout}>

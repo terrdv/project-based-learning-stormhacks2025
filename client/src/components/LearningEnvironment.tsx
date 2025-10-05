@@ -51,13 +51,9 @@ export function LearningEnvironment() {
   };
 
   useEffect(() => {
-    let mounted = true;
     (async () => {
         await updateProject();
     })();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   // Keep the local project in sync with database changes for this user
