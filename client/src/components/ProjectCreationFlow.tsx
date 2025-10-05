@@ -168,7 +168,7 @@ useEffect(() => {
 
         let result = await resp.json();
         console.log(result);
-        result = result.map((item: any, idx) => {
+        result = result.map((item: any, idx: number) => {
           const project: Project = {
             ...item,
             id: suggestedProjects.length + idx + 1,
@@ -188,8 +188,6 @@ useEffect(() => {
     setIsGenerating(true);
     try {
         const session = await supabase.auth.getSession();
-
-        console.log(session.data?.session?.access_token);
 
         const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/create`, {
           method: 'POST',
@@ -604,7 +602,7 @@ useEffect(() => {
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={!canProceed()}
+                disabled={isGenerating || !canProceed()}
                 className="gap-2"
               >
                 <Rocket className="w-4 h-4" />

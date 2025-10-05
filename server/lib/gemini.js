@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
+import supabase from "./supabase.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -17,13 +18,13 @@ export async function generateAppGuide({ userInfo, projectDetails }, userId) {
 
     ${JSON.stringify(projectDetails)}
 
-    Based on this, create instruciton
-    A. A title and description for the project, including what technologies will be used.
+    Based on this, create:
+    A. A title and description for the project, no markdown. Title should be short, and description also a sentence just describing what the project is. Plus an instruction for the project, should be an overview instruction lots longer than title and description, can have markdown.
     B. A list of files that will be needed for the project, filled with boilerplate code, comments, and placeholders where the user will need to add their own code. The boilerplate doesn't necessarily need to be completely barebones but should not implement core functionality for the user. Include only minimal code for the language the user wants to learn, just enough to illustrate structure. For other languages in the project, you may provide normal scaffolding. Use comments or placeholders to indicate where the user should write code.
     C. Create a detailed step-by-step guide for the user to follow. There should be 4-7 steps. Each step should include:
-    1. A title for the step.
-    2. A detailed description of what the step entails.
-    3. Clear instructions on how to complete the step, which include any resources or tools that may be needed. Remember not to do the project for the user but rather to guide them, and link to resources where appropriate.
+    1. A title for the step, should be very short like 4-5 words. These should all be text no like numbering or anything, and no markdown.
+    2. A detailed description of what the step entails, one sentence, and no markdown.
+    3. Clear instructions on how to complete the step, which include any resources or tools that may be needed. Remember not to do the project for the user but rather to guide them, and link to resources where appropriate. These can have markdown.
     `,
     config: {
       responseMimeType: 'application/json',
@@ -65,17 +66,18 @@ export async function generateAppGuide({ userInfo, projectDetails }, userId) {
     let feedback = response.candidates[0].content.parts[0].text;
     feedback = JSON.parse(feedback);
 
-    console.log(feedback)
+    //console.log(feedback)
 
     await supabase.from('projects').insert({
         ...feedback,
+        progress: 1,
         boilerplate: feedback.files,
         user_id: userId
     });
   // otherwise check text
   if (feedback) {
     try {
-      return JSON.parse(feedback);
+      return feedback;
     } catch (e) {
       console.error("Failed to parse response:", feedback);
     }
@@ -91,9 +93,9 @@ export async function generateFeedback(code, task) {
     You are a precise and constructive code reviewer. Analyze the following code and return your response as a JSON object ONLY.
 
     Evaluate the code according to these criteria:
-    1. **Correctness** – Does the code accomplish the given task accurately and without logical or runtime errors?
-    2. **Readability** – Is the code clear, well-structured, and easy to follow?
-    3. **Best Practices** – Does the code follow standard conventions and avoid common pitfalls?
+    1. **Correctness** - Does the code accomplish the given task accurately and without logical or runtime errors?
+    2. **Readability** - Is the code clear, well-structured, and easy to follow?
+    3. **Best Practices** - Does the code follow standard conventions and avoid common pitfalls?
 
     When generating feedback:
     - If the code is **correct**, provide clear and specific feedback highlighting what was done well and any small improvements.

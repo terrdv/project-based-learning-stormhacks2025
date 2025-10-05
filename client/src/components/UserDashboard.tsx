@@ -10,7 +10,8 @@ import { Header } from "./Header";
 import { 
   BookOpen, 
   Code, 
-  Clock, 
+  CheckCircle,
+  
   ChevronDown, 
   ChevronRight, 
   Play,
@@ -28,22 +29,41 @@ export function UserDashboard() {
   const navigate = useNavigate();
   // Local reactive variables replacing props
   const [userName, setUserName] = useState<string>('user');
+  // track whether we've finished checking auth so we don't flash the dashboard
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [project, setProject] = useState<any>(null);
 
   useEffect(() => {
-      let mounted = true;
-      (async () => {
-        try {
-          const { data } = await supabase.auth.getUser();
-          const user = data?.user;
-          if (!mounted || !user) return
-          const meta: any = user.user_metadata ?? {}
-          setUserName(meta.full_name || 'user')
-        } catch (e) {
-          // ignore
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const user = data?.user;
+        if (!mounted) return;
+        if (!user) {
+          navigate('/signin');
+          setIsCheckingAuth(false);
+          return;
         }
-    })()
-      return () => { mounted = false }
-    }, []);
+        const id = user.id;
+        const meta: any = user.user_metadata ?? {};
+        setUserName(meta.full_name || 'user');
+        setIsCheckingAuth(false);
+        const { data: projectData } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("user_id", id)
+        .order("last_saved", { ascending: false })
+        .limit(1)
+        .single();
+  setProject(projectData);
+      } catch (e) {
+        // ignore
+        setIsCheckingAuth(false);
+      }
+    })();
+    return () => { mounted = false };
+  }, [navigate]);
 
   const onContinueLearning = () => {
     // navigate to learning environment
@@ -57,23 +77,7 @@ export function UserDashboard() {
     
   const [savedProjectsOpen, setSavedProjectsOpen] = useState(false);
 
-  // Mock current project data
-  const currentProject = {
-    id: "html-css-basics",
-    title: "HTML & CSS Fundamentals",
-    description: "Learn the building blocks of web development",
-    progress: 65,
-    currentStep: 3,
-    totalSteps: 4,
-    timeSpent: "2h 15m",
-    lastAccessed: "2 hours ago",
-    steps: [
-      { id: 1, title: "HTML Structure", completed: true },
-      { id: 2, title: "CSS Styling", completed: true },
-      { id: 3, title: "Responsive Design", completed: false, current: true },
-      { id: 4, title: "CSS Grid & Flexbox", completed: false }
-    ]
-  };
+  // (no local mock project — we'll display DB project or a "No project available" message)
 
   // Mock saved projects
   const savedProjects = [
@@ -164,6 +168,9 @@ export function UserDashboard() {
     navigate('/create');
   };
 
+  // don't render the dashboard until we've confirmed auth status
+  if (isCheckingAuth) return null;
+
   return (
     <div className="min-h-screen bg-background">
         <Header />
@@ -184,93 +191,94 @@ export function UserDashboard() {
         {/* Current Project - Expanded */}
         <section className="mb-8">
           <h2 className="mb-4 flex left">Current Project</h2>
-          <Card className="border-primary/20">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    {currentProject.title}
-                  </CardTitle>
-                  <CardDescription>{currentProject.description}</CardDescription>
+          {project ? (
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      {project.title}
+                    </CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
+                  </div>
+                  <Button onClick={onContinueLearning} className="shrink-0">
+                    <Play className="h-4 w-4 mr-2" />
+                    Continue Learning
+                  </Button>
                 </div>
-                <Button onClick={onContinueLearning} className="shrink-0">
-                  <Play className="h-4 w-4 mr-2" />
-                  Continue Learning
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Progress Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <div className="space-y-2 md:col-span-2">
-                  <p className="text-sm text-muted-foreground">Overall Progress</p>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">{currentProject.progress}%</span>
-                      <span className="text-xs text-muted-foreground">{currentProject.currentStep}/{currentProject.totalSteps} steps</span>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground flex left mb-2">Overall Progress</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">{project.progress}%</span>
+                        <span className="text-xs text-muted-foreground">{project.currentStep}/{project.totalSteps} steps</span>
+                      </div>
+                      <Progress value={project.progress} className="h-2" />
                     </div>
-                    <Progress value={currentProject.progress} className="h-2" />
                   </div>
                 </div>
-                <div className="flex items-center gap-8 mx-auto md:mx-0 md:ml-auto">
-                    <div className="flex flex-col items-center space-y-2">
-                    <p className="text-sm text-muted-foreground">Time Spent</p>
-                    <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{currentProject.timeSpent}</span>
-                    </div>
-                    </div>
-                    <div className="flex flex-col items-center space-y-2">
-                    <p className="text-sm text-muted-foreground">Last Accessed</p>
-                    <span className="font-medium">{currentProject.lastAccessed}</span>
-                    </div>
-                </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Detailed Steps */}
-              <div className="space-y-3">
-                <h4 className={`flex text-left`}>Learning Steps</h4>
-                <div className="space-y-2">
-                  {currentProject.steps.map((step) => (
-                    <div 
-                      key={step.id} 
-                      className={`flex text-left items-center gap-3 p-3 rounded-lg border ${
-                        step.current 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border bg-card'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                        step.completed 
-                          ? 'bg-green-500 text-white' 
-                          : step.current 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {step.completed ? '✓' : step.id}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`font-medium ${step.current ? 'text-primary' : ''}`}>
-                          {step.title}
-                        </p>
-                        {step.current && (
-                          <p className="text-xs text-muted-foreground">Currently learning</p>
-                        )}
-                      </div>
-                      {step.current && (
-                        <Badge variant="outline" className="text-xs">
-                          In Progress
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  <h4 className={`flex text-left`}>Learning Steps</h4>
+                  <div className="space-y-2">
+                    {project.steps.map((step: any, idx: number) => {
+                      const stepNumber = idx + 1;
+                      const isCompleted = (project.progress || 0) > stepNumber;
+                      const isCurrent = (project.progress || 0) === stepNumber;
+                      return (
+                        <div
+                          key={step.id}
+                          className={`flex text-left items-center gap-3 p-3 rounded-lg border ${
+                            isCurrent ? 'border-primary bg-primary/5' : 'border-border bg-card'
+                          }`}
+                        >
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                            isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isCurrent
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {isCompleted ? <CheckCircle className="w-3 h-3" /> : stepNumber}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`font-medium ${isCurrent ? 'text-primary' : ''}`}>
+                              {step.title}
+                            </p>
+                            {isCurrent && (
+                              <p className="text-xs text-muted-foreground">Currently learning</p>
+                            )}
+                          </div>
+                          {isCurrent && (
+                            <Badge variant="outline" className="text-xs">
+                              In Progress
+                            </Badge>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-border">
+              <CardContent className="py-8 px-6 text-center">
+                <p className="text-sm text-muted-foreground">No project available. Create a project to get started.</p>
+                <div className="mt-4">
+                  <Button onClick={onCreateProject} className="">
+                    Create Project
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* Saved Projects - Collapsed */}

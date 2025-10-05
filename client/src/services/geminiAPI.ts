@@ -35,14 +35,16 @@ export const postFeedback = async (
   code: string,
   task: string
 ): Promise<FeedbackResponse> => {
-  const payload: FeedbackRequest = { code, task };
+  const data: FeedbackRequest = { code, task };
+
+  console.log(JSON.stringify(data))
 
   const response = await fetch(`${BASE_URL}/api/gemini/feedback`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
