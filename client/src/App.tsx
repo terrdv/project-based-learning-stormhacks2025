@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Routes, Route } from 'react-router-dom'
+import { HomePage } from "./components/HomePage";
+import { SignupPage } from "./components/SignupPage";
+import { UserDashboard } from './components/UserDashboard';
 import './App.css'
+import { SigninPage } from './components/SigninPage';
+import { ProjectCreationFlow } from './components/ProjectCreationFlow';
+import { LearningEnvironment } from './components/LearningEnvironment';
+import { useEffect } from 'react';
+import { supabase } from './supabase';
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  useEffect(() => {
+    supabase.from('todos').select('*').then(({ data, error }) => {
+      console.log('Supabase query executed');
+      if (error) console.error('Supabase Error:', error);
+      else console.log('Supabase Data:', data);
+    });
+  }, []);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route index element={<HomePage />} />
+      <Route path="/dashboard" element={<UserDashboard />} />
+      <Route path="/editor" element={<LearningEnvironment />} />
+      <Route path="signup" element={<SignupPage />} />
+      <Route path="signin" element={<SigninPage />} />
+      <Route path="create" element={<ProjectCreationFlow />} />
+    </Routes>
+  );
 }
 
 export default App
