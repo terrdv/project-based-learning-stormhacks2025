@@ -171,6 +171,10 @@ export function UserDashboard() {
   // don't render the dashboard until we've confirmed auth status
   if (isCheckingAuth) return null;
 
+  const completedSteps = Math.max(0, (project?.progress || 0) - 1);
+  const totalSteps = project?.steps?.length || 0;
+  const percent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-background">
         <Header />
@@ -195,17 +199,19 @@ export function UserDashboard() {
             <Card className="border-primary/20">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
+                  <div className="flex-1 min-w-0 pr-4">
+                    <CardTitle className="text-base truncate mb-3">
+                      {/* <BookOpen className="h-5 w-5" /> */}
                       {project.title}
                     </CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
+                    <CardDescription className="text-sm truncate">{project.description}</CardDescription>
                   </div>
-                  <Button onClick={onContinueLearning} className="shrink-0">
+                  <div className="flex-shrink-0">
+                    <Button onClick={onContinueLearning} className="shrink-0">
                     <Play className="h-4 w-4 mr-2" />
                     Continue Learning
                   </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -214,10 +220,10 @@ export function UserDashboard() {
                     <p className="text-sm text-muted-foreground flex left mb-2">Overall Progress</p>
                     <div className="space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium">{project.progress}%</span>
-                        <span className="text-xs text-muted-foreground">{project.currentStep}/{project.totalSteps} steps</span>
+                        <span className="text-sm font-medium">{percent}%</span>
+                        <span className="text-xs text-muted-foreground">{completedSteps}/{totalSteps} steps</span>
                       </div>
-                      <Progress value={project.progress} className="h-2" />
+                      <Progress value={percent} className="h-2" />
                     </div>
                   </div>
                 </div>

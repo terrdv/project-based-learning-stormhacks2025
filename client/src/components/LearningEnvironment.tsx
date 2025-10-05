@@ -92,11 +92,21 @@ export function LearningEnvironment() {
     };
   }, [userId]);
 
-  const [editorFiles, setEditorFiles] = useState<Record<string, string>>({});
-  // const previewRef = useRef<HTMLIFrameElement>(null);
 
   const submitCodeToGemini = async () => {
-      return 0;
+      const response = await fetch("/api/gemini/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: project.files,
+          step,
+          authToken: (await supabase.auth.getSession()).data.session?.access_token
+        }),
+      });
+      const data = await response.json();
+      return data.pass;
     };
 
 

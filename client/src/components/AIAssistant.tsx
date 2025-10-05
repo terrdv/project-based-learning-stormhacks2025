@@ -30,24 +30,6 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
     }
   };
 
-  /**
-   * 
-   *   const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: "assistant",
-      content: `Welcome to your HTML & CSS learning journey, ${
-        userName || "there"
-      }! 👋`,
-    },
-  ]);
-  // keep a stable id counter for messages so ids don't depend on array length
-  const messageIdRef = useRef<number>(2);
-
-
-   * 
-   */
-
     const handleSendMessage = (userMessage: string) => {
       const userMsg = {
         id: messages.length + 1,
@@ -63,83 +45,6 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
   
       setMessages([...messages, userMsg, aiMsg]);
     };
-  
-    // Submit code to Gemini and append response to the assistant chat
-  //   const submitCodeToGemini = async () => {
-  //     console.log("submit");
-  //     const code = Object.entries(editorFiles)
-  //       .map(([filename, content]) => `// File: ${filename}\n${content}`)
-  //       .join("\n\n");
-  //     const interimMsg = {
-  //       id: messageIdRef.current++,
-  //       role: "assistant",
-  //       content: "Checking your code with Gemini...",
-  //     };
-  //     setMessages((m) => [...m, interimMsg]);
-  //     try {
-  //       const resp = await postFeedback(
-  //         code,
-  //         `Feedback for step ${steps[currentStep - 1].instruction}`
-  //       );
-  //       const content =
-  //         typeof resp === "object" ? JSON.stringify(resp, null, 2) : String(resp);
-  //       console.log(content);
-  //       setMessages((m) => [
-  //         ...m.slice(0, -1),
-  //         {
-  //           id: messageIdRef.current++,
-  //           role: "assistant",
-  //           content: JSON.parse(content).feedback,
-  //         },
-  //       ]);
-  //       return JSON.parse(content).pass;
-  //     } catch (err) {
-  //       setMessages((m) => [
-  //         ...m.slice(0, -1),
-  //         {
-  //           id: messageIdRef.current++,
-  //           role: "assistant",
-  //           content: `Error getting feedback: ${String(err)}`,
-  //         },
-  //       ]);
-  //     }
-  //   };
-
-  /**
-   *       const successMsg = {
-        id: messageIdRef.current++,
-        role: "assistant",
-        content: `🎉 Excellent work! You've completed Step ${currentStep}: ${
-          currentStepData?.title
-        }
-        
-
-${
-  hasNext
-    ? `Up next: **Step ${nextStepId}${
-        nextStepData?.title ? ` — ${nextStepData.title}` : ""
-      }**. Click it when you're ready, and I'll guide you through what to do and why it matters.`
-    : "Congratulations! You've completed all the steps in this project. You've learned the fundamentals of HTML and CSS! 🎊"
-}`,
-      };
-      setMessages((m) => [...m, successMsg]);
-
-      const tryAgainMsg = {
-        id: messageIdRef.current++,
-        role: "assistant",
-        content: `🛠️ Not quite there yet on Step ${currentStep}: ${currentStepData?.title}.
-No worries — this is part of learning!
-
-Tips to try:**
-- Re-read the step instructions and compare carefully with your code.
-- Check for small syntax issues (missing closing tags, typos, class names).
-- If you changed CSS, ensure the selector matches the HTML.
-
-When you're ready, run your code again and hit **Submit** to re-check.`,
-      };
-      setMessages((m) => [...m, tryAgainMsg]);
-   * 
-   */
 
   return (
     <div className="h-full bg-card flex flex-col">
@@ -155,7 +60,7 @@ When you're ready, run your code again and hit **Submit** to re-check.`,
 
       <ScrollArea className="flex-1 p-4 max-h-full overflow-scroll" ref={scrollRef}>
         <div className="space-y-4">
-          {messages.map((message) => (
+          {messages.map((message: any) => (
             <div
               key={message.id}
               className={`flex gap-3 ${
