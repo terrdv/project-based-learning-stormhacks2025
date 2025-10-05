@@ -14,7 +14,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { CodeEditor } from "./Sandpack";
-// import { postFeedback } from "../services/geminiAPI";
 import { supabase } from "../supabase";
 
 export function LearningEnvironment() {

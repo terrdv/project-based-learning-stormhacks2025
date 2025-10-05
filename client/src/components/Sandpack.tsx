@@ -6,13 +6,9 @@ import {
   SandpackConsole,
   useSandpack,
 } from "@codesandbox/sandpack-react";
-import { useState, useEffect, useMemo } from "react";
-import { postFeedback } from "../services/geminiAPI";
+import { useState, useEffect } from "react";
 import styles from './Sandpack.module.css'
 import { supabase } from "@/supabase";
-
-
-type Feedback = any;
 
 function CodeWatcher({ onFiles }: { onFiles: (files: Record<string, string>) => void }) {
   const { sandpack } = useSandpack();
