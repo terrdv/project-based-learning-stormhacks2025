@@ -1,4 +1,4 @@
-import { generateAppGuide, generateProjectSuggestions, generateFeedback, generateHint, generateBoilerPlate} from "../lib/gemini.js";
+import { generateAppGuide, generateProjectSuggestions, generateFeedback, generateHint, generateBoilerPlate, generateQuestion} from "../lib/gemini.js";
 import supabase from "../lib/supabase.js";
 
 export const getAppSteps = async (req, res) => {
@@ -39,6 +39,12 @@ export const getFeedback = async (req, res) => {
 export const getHint = async (req, res) => {
   const {code, task} = req.body
   const result = await generateHint(code, task)
+  res.json(result)
+} 
+
+export const getAnswer = async (req, res) => {
+  const {userMessage: question, projectId} = req.body
+  const result = await generateQuestion(question, projectId)
   res.json(result)
 } 
 

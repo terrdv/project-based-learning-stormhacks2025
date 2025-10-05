@@ -1,4 +1,5 @@
-import { Code2, Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
+import polaris from '../assets/polaris.png';
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
@@ -33,8 +34,8 @@ export function Header() {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between p-4">
       <Button variant={"ghost"} className="flex items-center gap-3" onClick={() => navigate('/')}>
-        <Code2 className="size-6 text-primary" />
-        <h1 className="text-lg">AI Code Tutor</h1>
+  <img src={polaris} alt="Polaris" className="h-6 w-6 object-contain" />
+        <h1 className="text-lg">Polaris</h1>
       </Button>
       
       <div className="flex items-center gap-2">

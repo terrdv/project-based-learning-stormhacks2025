@@ -4,6 +4,12 @@ export interface FeedbackRequest {
   task: string;
 }
 
+export interface QuestionRequest {
+  question: string;
+  code: string;
+  task: string;
+}
+
 export interface FeedbackResponse {
   message?: string;
   success?: boolean;
@@ -58,7 +64,7 @@ export const postFeedback = async (
 export const postSuggestions = async (
   form_data: ProjectFormData
 ): Promise<ProjectsResponse> => {
-  const response = await fetch(`${BASE_URL}/api/gemini/projects`, {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/projects`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -79,7 +85,7 @@ export const postSuggestions = async (
 export const postAppSteps = async (
   form_data: ProjectFormData
 ): Promise<StepsResponse> => {
-  const response = await fetch(`${BASE_URL}/api/gemini/steps`, {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/steps`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -103,7 +109,33 @@ export const postHint = async (
 ): Promise<FeedbackResponse> => {
   const payload: FeedbackRequest = { code, task };
 
-  const response = await fetch(`${BASE_URL}/api/gemini/hint`, {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/hint`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `postHint failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const responseData: FeedbackResponse = await response.json();
+  return responseData;
+};
+
+
+export const postQuestion = async (
+  question: string,
+  code: string,
+  task: string
+): Promise<FeedbackResponse> => {
+  const payload: QuestionRequest = { question, code, task };
+
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/hint`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

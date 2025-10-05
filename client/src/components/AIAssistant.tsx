@@ -26,45 +26,17 @@ export function AIAssistant({ project, userId }: { project: any; userId: string 
     }
   };
 
-    const handleSendMessage = (userMessage: string) => {
-      const userMsg = {
-        id: messages.length + 1,
-        role: "user",
-        content: userMessage,
-      };
-      const buildFilesString = (files: { filename: string; content: string }[]) => {
-        return files
-          .map(
-            (f) => `--- FILE: ${f.filename} ---\n${f.content.trim()}\n`
-          )
-          .join("\n\n")
-      }
-
-
-      const filesString = buildFilesString(codefiles)
-      const payload = `
-        User Message:
-        ${userMessage}
-
-        Project Step:
-        ${project.steps[project.progress - 1]}
-
-        Project Files:
-        ${filesString}
-      `
-      const aiM = async() => {
-        await postFeedback(payload, project.steps[project.progress - 1])
-      }
-      const aitext = aiM()
-      const aiMsg = {
-        id: messages.length + 2,
-        role: "assistant",
-        content: aitext,
-      };
-  
-      // setMessages([...messages, userMsg, aiMsg]);
-      messages.push(userMsg, aiMsg)
-
+    const handleSendMessage = async (userMessage: string) => {
+      const response = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/gemini/question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            userMessage,
+          projectId: project.id
+        }),
+      });
     };
 
     const handleSend = () => {

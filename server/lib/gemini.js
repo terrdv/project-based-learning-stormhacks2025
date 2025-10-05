@@ -96,7 +96,7 @@ export async function generateAppGuide({ userInfo, projectDetails }, userId) {
 export async function generateFeedback(projectId) {
     let { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
     let msg = data.messages ?? [];
-    let { files: code, steps } = data;
+    let { files: code, boilerplate: boil, steps } = data;
     let task = steps[data.progress - 1];
 
     msg.push({ role: 'user', content: `I submitted code for task #${data.progress}`});
@@ -119,7 +119,8 @@ export async function generateFeedback(projectId) {
     Set "pass" to true **only if** the code is correct and fully achieves the intended functionality described in the task.
 
     Task: ${JSON.stringify(task)}
-    Code: ${JSON.stringify(code)}
+    Initial Boilerplate: ${JSON.stringify(boil)}
+    User Code Submission: ${JSON.stringify(code)}
     `,
     config: {
       responseMimeType: "application/json",
@@ -140,6 +141,11 @@ export async function generateFeedback(projectId) {
   console.log(feedback);
 
   msg.push({ role: 'assistant', content: feedback.feedback });
+
+  if (feedback.pass && data.progress < steps.length) {
+    const nextStep = steps[data.progress];
+    msg.push({ role: 'assistant', content: `Great job! You've completed step #${data.progress}. Now, let's move on to step #${data.progress + 1}: ${nextStep.title}. ${nextStep.description}. ${nextStep.instructions}` });
+  }
 
   await supabase.from('projects').update({
         progress: data.progress + (feedback.pass ? 1 : 0),
@@ -323,4 +329,75 @@ Return your response in this JSON format:
   }
 }
 
+export async function generateQuestion(question, projectId) {
+    let { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
+    let msg = data.messages ?? [];
+    let { files: code, boilerplate: boil, steps } = data;
+    let task = steps[data.progress - 1];
 
+    msg.push({ role: 'user', content: question});
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `
+    You are a helpful code teacher. Answer the user's question: If it is related to the task help but do not reveal too much information.
+
+  Question: ${question}
+  Code: ${JSON.stringify(code)}
+  Task: ${JSON.stringify(task)}
+    `,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "object",
+        properties: {
+          feedback: { type: "string" }
+        },
+        required: ["feedback"]
+      },
+    },
+  });
+
+  let feedback = response.candidates[0].content.parts[0].text;
+  feedback = JSON.parse(feedback)
+
+  console.log(feedback);
+
+  msg.push({ role: 'assistant', content: feedback.feedback });
+
+  await supabase.from('projects').update({
+        messages: msg
+    }).eq('id', projectId);
+  return feedback;
+}
+
+export async function generateQuestion(question,code, task) {
+  const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: `You are a helpful code teacher. Answer the user's question: If it is related to the task help but do not reveal too much information.
+
+  Question: ${question}
+  Code: ${code}
+  Task: ${task}
+
+  Return your feedback like this:
+  {
+    "answer": "Your answer here..."
+  }`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: "object",
+          properties: {
+            answer: { type: "string" }
+          },
+          required: ["hint"] // ensures feedback always exists
+        },
+      },
+    });
+
+    let hint = response.candidates[0].content.parts[0].text;
+
+  // Directly return the structured feedback
+  return JSON.parse(hint);
+}
